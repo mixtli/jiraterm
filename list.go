@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/andygrunwald/go-jira"
+	//"github.com/fatih/color"
 	c "github.com/jroimartin/gocui"
+	. "github.com/logrusorgru/aurora"
 	"log"
 )
 
@@ -132,6 +134,7 @@ func (l *List) MoveDown() error {
 	if l.IsEmpty() {
 		return nil
 	}
+	log.Println(l.currentCursorY())
 	y := l.currentCursorY() + 1
 	if l.atBottomOfPage() {
 		y = 0
@@ -271,10 +274,28 @@ func (l *List) prevPageIdx() int {
 func (l *List) displayItem(i int) string {
 	item := l.items[i]
 	var text string
+	// cyan := color.New(color.FgCyan).SprintfFunc()
+	// green := color.New(color.FgGreen).SprintfFunc()
 	switch item.(type) {
 	case jira.Issue:
 		issue := item.(jira.Issue)
-		text = fmt.Sprintf("%s\t%s  %s", issue.Key, issue.Fields.Summary, issue.Fields.Status.Name)
+		summary := issue.Fields.Summary
+		assignee := issue.Fields.Assignee
+		var username string
+		if assignee != nil {
+			username = assignee.DisplayName
+
+		} else {
+			username = "unassigned"
+		}
+		if len(summary) > 70 {
+			summary = summary[:70]
+		}
+		// issueField := cyan("%-9v", issue.Key)
+		// statusField := green("%12v", issue.Fields.Status.Name)
+		text = fmt.Sprintf("%-8s| %-70s|%12s | %s", Cyan(issue.Key), summary, Green(issue.Fields.Status.Name), username)
+
+		//text = fmt.Sprintf("|%s| %60s | %10s | %20s", cyan("%9v", issue.Key), summary, green.Sprint(issue.Fields.Status.Name), username)
 	default:
 		text = fmt.Sprint(item)
 	}

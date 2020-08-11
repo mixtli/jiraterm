@@ -12,6 +12,8 @@ const (
 	LIST_VIEW       = "list"
 	ISSUE_VIEW      = "issue"
 	EDIT_ISSUE_VIEW = "edit_issue"
+	PROMPT_VIEW     = "prompt"
+	DETAIL_VIEW     = "detail"
 )
 
 var (
@@ -71,6 +73,23 @@ func RunUI() {
 		log.Fatal("Failed to create Issue view:", err)
 	}
 	IssueView.Title = " Issue Summary "
+	IssueView.Wrap = true
+
+	if _, err = g.View(PROMPT_VIEW); err == nil {
+		_, err = g.SetView(PROMPT_VIEW, curW/6, (curH/2)-1, (curW*5)/6, (curH/2)+1)
+		if err != nil && err != c.ErrUnknownView {
+			log.Fatal(" Failed to create prompt:", err)
+		}
+	}
+
+	var detailView *c.View
+	if detailView, err = g.View(DETAIL_VIEW); err == nil {
+		detailView.Wrap = true
+		_, err = g.SetView(DETAIL_VIEW, curW/8, curH/8, (curW*7)/8, (curH*7)/8)
+		if err != nil && err != c.ErrUnknownView {
+			log.Fatal(" Failed to create detail view:", err)
+		}
+	}
 
 	if err := keybindings(g); err != nil {
 		log.Panicln(err)
@@ -86,7 +105,7 @@ func RunUI() {
 	})
 
 	// Periodically update the issue list
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(600 * time.Second)
 	go func() {
 		for {
 			<-ticker.C
@@ -164,53 +183,73 @@ func layout(g *c.Gui) error {
 }
 
 func keybindings(g *c.Gui) error {
-	if err := g.SetKeybinding(SIDE_VIEW, c.KeyTab, c.ModNone, nextView); err != nil {
-		return err
-	}
-	if err := g.SetKeybinding(LIST_VIEW, c.KeyTab, c.ModNone, nextView); err != nil {
-		return err
-	}
-	if err := g.SetKeybinding(LIST_VIEW, c.KeyCtrlO, c.ModNone, OpenBrowser); err != nil {
-		return err
-	}
-	if err := g.SetKeybinding(ISSUE_VIEW, c.KeyTab, c.ModNone, nextView); err != nil {
-		return err
-	}
+
+	// Global Bindings
 	if err := g.SetKeybinding("", c.KeyCtrlC, c.ModNone, quit); err != nil {
 		return err
 	}
 
-	if err := g.SetKeybinding(LIST_VIEW, c.KeyArrowUp, c.ModNone, ListUp); err != nil {
+	if err := g.SetKeybinding("", c.KeyCtrlS, c.ModNone, Search); err != nil {
 		return err
 	}
 
-	if err := g.SetKeybinding(LIST_VIEW, c.KeyArrowDown, c.ModNone, ListDown); err != nil {
+	if err := g.SetKeybinding("", c.KeyCtrlR, c.ModNone, resetQuery); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding(SIDE_VIEW, c.KeyArrowUp, c.ModNone, ListUp); err != nil {
+	// List View Bindings
+	for _, view := range []string{SIDE_VIEW, LIST_VIEW} {
+		if err := g.SetKeybinding(view, c.KeyTab, c.ModNone, nextView); err != nil {
+			return err
+		}
+		if err := g.SetKeybinding(view, c.KeyArrowUp, c.ModNone, ListUp); err != nil {
+			return err
+		}
+		if err := g.SetKeybinding(view, c.KeyArrowDown, c.ModNone, ListDown); err != nil {
+			return err
+		}
+
+		if err := g.SetKeybinding(view, 'k', c.ModNone, ListUp); err != nil {
+			return err
+		}
+		if err := g.SetKeybinding(view, 'j', c.ModNone, ListDown); err != nil {
+			return err
+		}
+
+		if err := g.SetKeybinding(view, c.KeyPgup, c.ModNone, ListPgUp); err != nil {
+			log.Fatal("Failed to set keybindings")
+		}
+		if err := g.SetKeybinding(view, c.KeyPgdn, c.ModNone, ListPgDown); err != nil {
+			log.Fatal("Failed to set keybindings")
+		}
+
+	}
+
+	// Prompt View (search) Bindings
+	if err := g.SetKeybinding(PROMPT_VIEW, c.KeyEnter, c.ModNone, PerformSearch); err != nil {
 		return err
 	}
 
-	if err := g.SetKeybinding(SIDE_VIEW, c.KeyArrowDown, c.ModNone, ListDown); err != nil {
+	// Side View Bindings
+	if err := g.SetKeybinding(SIDE_VIEW, c.KeyEnter, c.ModNone, selectQuery); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding(SIDE_VIEW, 'l', c.ModNone, nextView); err != nil {
 		return err
 	}
 
-	if err := g.SetKeybinding(LIST_VIEW, c.KeyPgup, c.ModNone, ListPgUp); err != nil {
-		log.Fatal("Failed to set keybindings")
+	// Issue List View Bindings
+	if err := g.SetKeybinding(LIST_VIEW, 'o', c.ModNone, OpenBrowser); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding(LIST_VIEW, 'v', c.ModNone, ShowDetailView); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding(LIST_VIEW, 'h', c.ModNone, nextView); err != nil {
+		return err
 	}
 
-	if err := g.SetKeybinding(LIST_VIEW, c.KeyPgdn, c.ModNone, ListPgDown); err != nil {
-		log.Fatal("Failed to set keybindings")
-	}
-
-	// if err := g.SetKeybinding("", c.KeyArrowDown, c.ModNone, cursorDown); err != nil {
-	//   return err
-	// }
-	// if err := g.SetKeybinding("", c.KeyArrowUp, c.ModNone, cursorUp); err != nil {
-	//   return err
-	// }
-
-	if err := g.SetKeybinding("", c.KeyEnter, c.ModNone, selectQuery); err != nil {
+	// Detail View
+	if err := g.SetKeybinding(DETAIL_VIEW, 'q', c.ModNone, closeDetailView); err != nil {
 		return err
 	}
 	return nil
