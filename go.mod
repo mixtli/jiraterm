@@ -1,4 +1,4 @@
-module mixtli/jiraterm
+module github.com/mixtli/jiraterm
 
 go 1.14
 

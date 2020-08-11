@@ -189,13 +189,6 @@ func keybindings(g *c.Gui) error {
 		return err
 	}
 
-	if err := g.SetKeybinding("", c.KeyCtrlS, c.ModNone, Search); err != nil {
-		return err
-	}
-
-	if err := g.SetKeybinding("", c.KeyCtrlR, c.ModNone, resetQuery); err != nil {
-		return err
-	}
 	// List View Bindings
 	for _, view := range []string{SIDE_VIEW, LIST_VIEW} {
 		if err := g.SetKeybinding(view, c.KeyTab, c.ModNone, nextView); err != nil {
@@ -245,6 +238,13 @@ func keybindings(g *c.Gui) error {
 		return err
 	}
 	if err := g.SetKeybinding(LIST_VIEW, 'h', c.ModNone, nextView); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding(LIST_VIEW, 's', c.ModNone, Search); err != nil {
+		return err
+	}
+
+	if err := g.SetKeybinding(LIST_VIEW, 'r', c.ModNone, resetQuery); err != nil {
 		return err
 	}
 
