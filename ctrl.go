@@ -53,7 +53,7 @@ func selectQuery(g *c.Gui, v *c.View) error {
 			select {
 			case <-done:
 				g.Update(func(g *c.Gui) error {
-					IssueList.SetTitle("Done")
+					IssueList.SetTitle("Issues")
 					return nil
 				})
 				return
