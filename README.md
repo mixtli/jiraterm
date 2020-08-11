@@ -2,6 +2,9 @@
 This is a simple terminal Jira viewer.  Configure JQL queries in a config file and you will
 be able to view issues and easily open them in a browser for editing.
 
+This is just a quick project to help me learn go.   Not promising to maintain it.  
+It's useful to me but it may not be useful to you.   I will consider pull requests.
+
 # Screenshot
 ![Screenshot](jiraterm.png)
 
@@ -28,8 +31,8 @@ queries:
 # Key Mappings
 |Key|Function|
 |---|--------|
-|h|Query List|
-|l|Issue List|
+|h| Query List|
+|l| Issue List|
 |k| Up |
 |j| Down |
 |v| View Issue |
